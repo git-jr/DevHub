@@ -1,6 +1,7 @@
 package com.paradoxo.devhub
 
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.background
@@ -24,14 +25,24 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
+import com.paradoxo.devhub.model.ProfileGitHub
 import com.paradoxo.devhub.ui.theme.DevHubTheme
+import com.paradoxo.devhub.webclient.RetrofitInit
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers.IO
+import kotlinx.coroutines.launch
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        carregaDadosPerfilGitHub("git-jr")
+
         setContent {
             DevHubTheme {
-                // A surface container using the 'background' color from the theme
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colors.background
@@ -40,6 +51,35 @@ class MainActivity : ComponentActivity() {
                 }
             }
         }
+    }
+}
+
+fun carregaDadosPerfilGitHub(usuario: String) {
+    CoroutineScope(IO).launch {
+        val call = RetrofitInit().profileGitHubService()
+            .getProfilebyUser(usuario)
+
+        call.enqueue(object : Callback<ProfileGitHub?> {
+            override fun onResponse(
+                call: Call<ProfileGitHub?>,
+                response: Response<ProfileGitHub?>
+            ) {
+                response.body()?.let {
+                    val profile: ProfileGitHub = it
+
+                    val infoTeste = ("Nome: $profile.name, Bio: $profile.bio")
+
+                    Log.i("Teste Retrofit", infoTeste)
+                }
+            }
+
+            override fun onFailure(call: Call<ProfileGitHub?>, t: Throwable?) {
+                Log.e("Erro Retrofit", t?.message.toString())
+
+            }
+
+        }
+        )
     }
 }
 
@@ -107,7 +147,6 @@ fun InfoCard() {
     }
 
 }
-
 
 @Preview(showBackground = true)
 @Composable
