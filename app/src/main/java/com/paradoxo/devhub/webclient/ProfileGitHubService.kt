@@ -8,5 +8,5 @@ import retrofit2.http.Path
 interface ProfileGitHubService {
 
     @GET("/users/{user}")
-    fun getProfilebyUser(@Path("user") user: String): Call<ProfileGitHub>
+    suspend fun getProfilebyUser(@Path("user") user: String): ProfileGitHub
 }

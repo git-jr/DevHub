@@ -1,8 +1,8 @@
 package com.paradoxo.devhub.model
 
 data class ProfileGitHub(
-    val id: Int,
+    val login: String,
     val name: String,
-    val avatar_ulr: String,
+    val avatar_url: String,
     val bio: String
 )

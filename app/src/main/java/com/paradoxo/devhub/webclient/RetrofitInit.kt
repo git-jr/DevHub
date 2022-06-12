@@ -11,5 +11,5 @@ class RetrofitInit {
         .build()
 
 
-    suspend fun profileGitHubService() = retrofit.create(ProfileGitHubService::class.java)
+    val profileGitHubService get() = retrofit.create(ProfileGitHubService::class.java)
 }
