@@ -26,6 +26,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
+import com.paradoxo.devhub.screen.InfoCardScreen
 import com.paradoxo.devhub.ui.theme.DevHubTheme
 import com.paradoxo.devhub.ui.theme.GitHubWebClient
 
@@ -39,87 +40,10 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colors.background
                 ) {
-                    InfoCard("git-jr")
+                    InfoCardScreen ("git-jr")
                 }
             }
         }
     }
 }
 
-@Composable
-fun InfoCard(user: String, webClient: GitHubWebClient = GitHubWebClient()) {
-
-    val findedUser by webClient.getProfilebyUser(user)
-        .collectAsState(initial = null)
-    findedUser?.let {
-
-        Column() {
-            val boxHeight = remember {
-                120.dp
-            }
-
-            val imageHeight = remember {
-                boxHeight
-            }
-
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(
-                        Color.DarkGray, shape = RoundedCornerShape(
-                            bottomStart = 16.dp,
-                            bottomEnd = 16.dp
-                        )
-                    )
-                    .height(boxHeight)
-
-
-            ) {
-
-
-                AsyncImage(
-                    model = ImageRequest.Builder(LocalContext.current)
-                        .data(data = it.avatar_url)
-                        .crossfade(true)
-                        .build(),
-                    placeholder = painterResource(R.drawable.profile_placeholder),
-                    contentDescription = "Avatar usuário",
-                    modifier = Modifier
-                        .offset(y = imageHeight / 2, x = 20.dp)
-                        .clip(CircleShape)
-                        .border(4.dp, Color.White, CircleShape)
-                )
-
-
-            }
-
-            Spacer(modifier = Modifier.height(imageHeight / 2))
-
-            Column(
-                Modifier
-                    .padding(18.dp, top = 4.dp)
-                    .fillMaxWidth(),
-
-                ) {
-
-                Text(it.name, fontSize = 32.sp, fontWeight = FontWeight.Bold)
-                Text(it.login, fontSize = 20.sp, color = Color.Gray)
-                Text(
-                    it.bio,
-                    Modifier
-                        .fillMaxWidth()
-                        .padding(top = 12.dp),
-                )
-
-            }
-        }
-    }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun DefaultPreview() {
-    DevHubTheme {
-        InfoCard("git-jr")
-    }
-}
