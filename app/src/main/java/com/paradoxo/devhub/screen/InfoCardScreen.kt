@@ -1,6 +1,5 @@
 package com.paradoxo.devhub.screen
 
-import android.icu.text.ListFormatter
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
@@ -8,11 +7,9 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.Card
-import androidx.compose.material.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.remember
+import androidx.compose.material.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
@@ -26,7 +23,6 @@ import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.paradoxo.devhub.R
 import com.paradoxo.devhub.model.GitHubRepository
-import com.paradoxo.devhub.ui.theme.DevHubTheme
 import com.paradoxo.devhub.webclient.GitHubWebClient
 
 
@@ -39,16 +35,40 @@ fun InfoCardScreen(user: String, webClient: GitHubWebClient = GitHubWebClient())
         webClient.getProfilebyUser(user)
     }
 
-    Profile(uiState)
+    Profile(uiState, webClient)
 
 }
 
+
 @Composable
-fun Profile(uiState: ProfileUiState) {
+fun Profile(uiState: ProfileUiState, webClient: GitHubWebClient) {
+
+    val visibilitySearchDialog: MutableState<Boolean> = remember {
+        mutableStateOf(false)
+    }
+
+    val userSearch: MutableState<String> = remember {
+        mutableStateOf("")
+    }
+
+    SearchDialog(visibilitySearchDialog, onSearchClick = { user ->
+        userSearch.value = user
+    })
+
+
+    if (userSearch.value.isNotBlank()) {
+
+        val uiState = webClient.uiState
+        LaunchedEffect(null) {
+            webClient.getProfilebyUser(userSearch.value)
+
+        }
+        InfoCardScreen(user = userSearch.value)
+    }
 
     LazyColumn {
         item {
-            ProfileHeader(uiState)
+            ProfileHeader(uiState, visibilitySearchDialog)
         }
 
         item {
@@ -69,8 +89,9 @@ fun Profile(uiState: ProfileUiState) {
     }
 }
 
+@OptIn(ExperimentalMaterialApi::class)
 @Composable
-private fun ProfileHeader(userProfile: ProfileUiState) {
+private fun ProfileHeader(userProfile: ProfileUiState, showSearchDialog: MutableState<Boolean>) {
     Column() {
         val boxHeight = remember {
             120.dp
@@ -91,8 +112,23 @@ private fun ProfileHeader(userProfile: ProfileUiState) {
                 )
                 .height(boxHeight)
 
-
         ) {
+
+            Chip(
+                onClick = {
+                    showSearchDialog.value = true
+                },
+                border = ChipDefaults.outlinedBorder,
+                colors = ChipDefaults.outlinedChipColors(),
+                modifier = Modifier
+                    .offset(y = imageHeight / 2)
+                    .align(Alignment.BottomEnd)
+                    .padding(end = 18.dp)
+            ) {
+                Text(
+                    text = " Trocar usuario",
+                )
+            }
 
             AsyncImage(
                 model = ImageRequest.Builder(LocalContext.current)
@@ -136,7 +172,7 @@ private fun ProfileHeader(userProfile: ProfileUiState) {
 fun RepositoryItem(repo: GitHubRepository) {
     Card(
         modifier = Modifier.padding(start = 18.dp, end = 8.dp, top = 8.dp, bottom = 8.dp),
-            elevation = 4.dp
+        elevation = 4.dp
     ) {
 
         Column {
@@ -164,6 +200,42 @@ fun RepositoryItem(repo: GitHubRepository) {
 
 }
 
+@Composable
+fun SearchDialog(visible: MutableState<Boolean>, onSearchClick: (String) -> Unit) {
+
+    val userNameSearch: MutableState<String> = remember {
+        mutableStateOf(" ")
+    }
+
+    if (visible.value) {
+        AlertDialog(
+            onDismissRequest = {},
+            title = {
+                Text(
+                    text = "DevHub",
+                    color = Color.Gray
+                )
+            },
+            text = {
+                OutlinedTextField(
+                    value = userNameSearch.value,
+                    onValueChange = { userNameSearch.value = it },
+                    label = { Text("Buscar usuário") })
+            },
+            confirmButton = {
+                TextButton(onClick = {
+                    visible.value = false
+                    onSearchClick(userNameSearch.value)
+                }) {
+                    Text(text = "Pesquisar", Modifier.padding(bottom = 16.dp))
+                }
+            },
+
+            )
+
+    }
+}
+
 @Preview(showBackground = true)
 @Composable
 fun ProfileWithRepositoriesPreview() {
@@ -183,7 +255,8 @@ fun ProfileWithRepositoriesPreview() {
                     description = "Preview description 2"
                 )
             )
-        )
+        ),
+        webClient = GitHubWebClient()
     )
 
 }
