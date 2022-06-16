@@ -1,18 +1,16 @@
 package com.paradoxo.devhub.screen
 
-import android.icu.text.ListFormatter
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.Card
-import androidx.compose.material.Text
+import androidx.compose.material.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
@@ -26,12 +24,15 @@ import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.paradoxo.devhub.R
 import com.paradoxo.devhub.model.GitHubRepository
-import com.paradoxo.devhub.ui.theme.DevHubTheme
 import com.paradoxo.devhub.webclient.GitHubWebClient
 
 
 @Composable
-fun InfoCardScreen(user: String, webClient: GitHubWebClient = GitHubWebClient()) {
+fun InfoCardScreen(
+    user: String,
+    webClient: GitHubWebClient = GitHubWebClient(),
+    onSearchClick: () -> Unit = {}
+) {
 
     val uiState = webClient.uiState
 
@@ -39,23 +40,25 @@ fun InfoCardScreen(user: String, webClient: GitHubWebClient = GitHubWebClient())
         webClient.getProfilebyUser(user)
     }
 
-    Profile(uiState)
+    Profile(uiState, onSearchClick)
 
 }
 
+
 @Composable
-fun Profile(uiState: ProfileUiState) {
+fun Profile(uiState: ProfileUiState, onSearchClick: () -> Unit = {}) {
 
     LazyColumn {
         item {
-            ProfileHeader(uiState)
+
+            ProfileHeader(uiState, onSearchClick = onSearchClick)
         }
 
         item {
             if (uiState.repositories.isNotEmpty()) {
                 Text(
                     text = "Repositórios",
-                    Modifier.padding(start = 18.dp, top = 12.dp, bottom = 4.dp),
+                    Modifier.padding(start = 18.dp, top = 10.dp, bottom = 4.dp),
                     fontSize = 20.sp,
                     color = Color.Gray,
                 )
@@ -69,8 +72,9 @@ fun Profile(uiState: ProfileUiState) {
     }
 }
 
+@OptIn(ExperimentalMaterialApi::class)
 @Composable
-private fun ProfileHeader(userProfile: ProfileUiState) {
+private fun ProfileHeader(userProfile: ProfileUiState, onSearchClick: () -> Unit = {}) {
     Column() {
         val boxHeight = remember {
             120.dp
@@ -91,21 +95,47 @@ private fun ProfileHeader(userProfile: ProfileUiState) {
                 )
                 .height(boxHeight)
 
-
         ) {
 
-            AsyncImage(
-                model = ImageRequest.Builder(LocalContext.current)
-                    .data(data = userProfile.image)
-                    .crossfade(false)
-                    .build(),
-                placeholder = painterResource(R.drawable.profile_placeholder),
-                contentDescription = "Avatar usuário",
+            Chip(
+                onClick = { onSearchClick() },
+                border = ChipDefaults.outlinedBorder,
+                colors = ChipDefaults.outlinedChipColors(),
+                modifier = Modifier
+                    .offset(y = imageHeight / 2)
+                    .align(Alignment.BottomEnd)
+                    .padding(end = 18.dp)
+            ) {
+                Text(
+                    text = "Mudar usuário",
+                )
+            }
+
+
+
+            Box(
                 modifier = Modifier
                     .offset(y = imageHeight / 2, x = 20.dp)
                     .clip(CircleShape)
-                    .border(4.dp, Color.White, CircleShape)
-            )
+                    .background(
+                        Color.White
+                    )
+                    .height(imageHeight)
+                    .width(imageHeight)
+                    .padding(4.dp)
+            ) {
+                AsyncImage(
+                    model = ImageRequest.Builder(LocalContext.current)
+                        .data(data = userProfile.image)
+                        .crossfade(false)
+                        .build(),
+                    placeholder = painterResource(R.drawable.profile_placeholder),
+                    contentDescription = "Avatar usuário",
+                    modifier = Modifier
+                        .clip(CircleShape)
+                        .align(Alignment.Center)
+                )
+            }
 
 
         }
@@ -136,7 +166,7 @@ private fun ProfileHeader(userProfile: ProfileUiState) {
 fun RepositoryItem(repo: GitHubRepository) {
     Card(
         modifier = Modifier.padding(start = 18.dp, end = 8.dp, top = 8.dp, bottom = 8.dp),
-            elevation = 4.dp
+        elevation = 4.dp
     ) {
 
         Column {
@@ -163,6 +193,7 @@ fun RepositoryItem(repo: GitHubRepository) {
     }
 
 }
+
 
 @Preview(showBackground = true)
 @Composable
