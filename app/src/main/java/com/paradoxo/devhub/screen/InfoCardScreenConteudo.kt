@@ -23,39 +23,36 @@ import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.paradoxo.devhub.R
-import com.paradoxo.devhub.model.GitHubRepository
-import com.paradoxo.devhub.webclient.GitHubWebClient
+import com.paradoxo.devhub.model.ConteudoRepository
+import com.paradoxo.devhub.webclient.ConteudoWebClient
 
 
 @Composable
-fun InfoCardScreen(
+fun InfoCardScreenConteudo(
     user: String,
-    webClient: GitHubWebClient = GitHubWebClient(),
+    webClient: ConteudoWebClient = ConteudoWebClient(),
     onSearchClick: () -> Unit = {}
 ) {
-
     val uiState = webClient.uiState
 
     LaunchedEffect(null) {
-        webClient.getProfilebyUser(user)
+        webClient.getConteudo()
     }
 
-    Profile(uiState, onSearchClick)
-
+    Conteudo(uiState, onSearchClick)
 }
 
 
 @Composable
-fun Profile(uiState: ProfileUiState, onSearchClick: () -> Unit = {}) {
+fun Conteudo(uiState: ConteudoUiState, onSearchClick: () -> Unit = {}) {
 
     LazyColumn {
         item {
-
-            ProfileHeader(uiState, onSearchClick = onSearchClick)
+            ConteudoHeader(uiState, onSearchClick = onSearchClick)
         }
 
         item {
-            if (uiState.repositories.isNotEmpty()) {
+            if (uiState.conteudos.isNotEmpty()) {
                 Text(
                     text = "Repositórios",
                     Modifier.padding(start = 18.dp, top = 10.dp, bottom = 4.dp),
@@ -65,8 +62,8 @@ fun Profile(uiState: ProfileUiState, onSearchClick: () -> Unit = {}) {
             }
         }
 
-        items(uiState.repositories) { repo ->
-            RepositoryItem(repo = repo)
+        items(uiState.conteudos) { conteudo ->
+            RepositoryItem(conteudo = conteudo)
         }
 
     }
@@ -74,7 +71,7 @@ fun Profile(uiState: ProfileUiState, onSearchClick: () -> Unit = {}) {
 
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
-private fun ProfileHeader(userProfile: ProfileUiState, onSearchClick: () -> Unit = {}) {
+private fun ConteudoHeader(userProfile: ConteudoUiState, onSearchClick: () -> Unit = {}) {
     Column() {
         val boxHeight = remember {
             120.dp
@@ -152,7 +149,7 @@ private fun ProfileHeader(userProfile: ProfileUiState, onSearchClick: () -> Unit
             Text(userProfile.name, fontSize = 32.sp, fontWeight = FontWeight.Bold)
             Text(userProfile.user, fontSize = 20.sp, color = Color.Gray)
             Text(
-                userProfile.bio,
+                userProfile.ranking,
                 Modifier
                     .fillMaxWidth()
                     .padding(top = 12.dp),
@@ -163,30 +160,62 @@ private fun ProfileHeader(userProfile: ProfileUiState, onSearchClick: () -> Unit
 }
 
 @Composable
-fun RepositoryItem(repo: GitHubRepository) {
+fun RepositoryItem(conteudo: ConteudoRepository) {
     Card(
         modifier = Modifier.padding(start = 18.dp, end = 8.dp, top = 8.dp, bottom = 8.dp),
         elevation = 4.dp
     ) {
+        Row() {
+            val boxHeight = remember {
+                120.dp
+            }
 
-        Column {
-            Text(
-                repo.name,
+            val imageHeight = remember {
+                boxHeight
+            }
+
+            Box(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .background(Color.DarkGray)
-                    .padding(8.dp),
-                fontSize = 24.sp,
-                color = Color.White
-            )
-            if (repo.description.isNotBlank()) {
-                Text(
-                    repo.description,
+                    .clip(CircleShape)
+                    .background(
+                        Color.White
+                    )
+                    .height(imageHeight)
+                    .width(imageHeight)
+                    .padding(8.dp)
+            ) {
+                AsyncImage(
+                    model = ImageRequest.Builder(LocalContext.current)
+                        .data(data = conteudo.image)
+                        .crossfade(false)
+                        .build(),
+                    placeholder = painterResource(R.drawable.profile_placeholder),
+                    contentDescription = "Imagem conteudo",
                     modifier = Modifier
-                        .padding(8.dp)
-                        .fillMaxWidth()
+                        .clip(CircleShape)
+                        .align(Alignment.Center)
                 )
             }
+
+            Column(
+                modifier = Modifier
+                    .padding(8.dp)
+            ) {
+                Text(
+                    conteudo.title,
+                    modifier = Modifier
+                        .padding(bottom = 8.dp)
+                        .fillMaxWidth()
+                )
+
+                Text(
+                    conteudo.image,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                )
+
+            }
+
 
         }
 
@@ -197,21 +226,20 @@ fun RepositoryItem(repo: GitHubRepository) {
 
 @Preview(showBackground = true)
 @Composable
-fun ProfileWithRepositoriesPreview() {
-    Profile(
-        uiState = ProfileUiState(
+fun ConteudoPreview() {
+    Conteudo(
+        uiState = ConteudoUiState(
             user = "git-jr",
             image = "https://avatars.githubusercontent.com/u/35709152?v=4",
             name = "Junior",
-            bio = "I'm a Paradoxo! YouTuber, developer, analyst and thinker. \nHave you ever experienced anything different today?",
-            repositories = listOf(
-                GitHubRepository(
-                    name = "Repository for first test",
-                    description = "Preview description 1"
+            conteudos = listOf(
+                ConteudoRepository(
+                    title = "Conteudo for first test",
+                    image = "Preview description 1"
                 ),
-                GitHubRepository(
-                    name = "Repository for second test",
-                    description = "Preview description 2"
+                ConteudoRepository(
+                    title = "Repository for second test",
+                    image = "Preview description 2"
                 )
             )
         )
@@ -219,11 +247,10 @@ fun ProfileWithRepositoriesPreview() {
 
 }
 
-
-data class ProfileUiState(
+data class ConteudoUiState(
     val user: String = "",
     val image: String = "",
     val name: String = "",
-    val bio: String = "",
-    val repositories: List<GitHubRepository> = emptyList()
+    val ranking: String = "",
+    val conteudos: List<ConteudoRepository> = emptyList()
 )

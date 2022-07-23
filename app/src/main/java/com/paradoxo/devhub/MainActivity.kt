@@ -12,7 +12,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import com.paradoxo.devhub.screen.AuthenticationScreen
-import com.paradoxo.devhub.screen.InfoCardScreen
+import com.paradoxo.devhub.screen.InfoCardScreenConteudo
 import com.paradoxo.devhub.ui.theme.DevHubTheme
 
 
@@ -38,7 +38,8 @@ class MainActivity : ComponentActivity() {
                         AppsScreens.Authentication -> {
                             AuthenticationScreen(
                                 onEnterClick = {
-                                    if (it.isNotBlank()) {
+                                    if(it.isBlank()){
+                                        user = "https://sticker-doxo-api.herokuapp.com/linguagens"
                                         user = it
                                         screenState = AppsScreens.Profile
                                     }
@@ -46,12 +47,11 @@ class MainActivity : ComponentActivity() {
                             )
                         }
                         AppsScreens.Profile -> {
-                            InfoCardScreen(user = user, onSearchClick = {
+                            InfoCardScreenConteudo(user = user, onSearchClick = {
                                 val intent = intent
                                 finish()
                                 startActivity(intent)
                             })
-
                         }
                     }
 

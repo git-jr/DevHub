@@ -42,7 +42,6 @@ fun AuthenticationScreen(
         verticalArrangement = Arrangement.Center
     ) {
 
-
         val imageLoaderGif = ImageLoader.Builder(LocalContext.current)
             .components {
                 if (SDK_INT >= 28) {
@@ -67,7 +66,7 @@ fun AuthenticationScreen(
         )
 
         Text(
-            "DevHub",
+            "API Tester",
             fontSize = 64.sp,
             color = Color.Gray,
             modifier = Modifier.paddingFromBaseline(bottom = 64.sp)
@@ -76,7 +75,8 @@ fun AuthenticationScreen(
             user = it
         }, modifier = Modifier
             .padding(horizontal = 16.dp)
-            .fillMaxWidth(), label = { (Text(text = "Buscar usuário")) })
+            .fillMaxWidth(), label = { (Text(text = "Digite uma API")) })
+
 
         Spacer(modifier = Modifier.height(16.dp))
 
