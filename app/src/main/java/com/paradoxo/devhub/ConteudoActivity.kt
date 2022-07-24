@@ -78,7 +78,7 @@ fun PorfileHeader(
     onAddStickerClick: (id: String) -> Unit = {}
 ) {
     Column() {
-        val boxHeight = remember { 200.dp }
+        val boxHeight = remember { 350.dp }
         val imageHeight = remember { boxHeight }
 
         Column() {
@@ -97,13 +97,8 @@ fun PorfileHeader(
                     placeholder = painterResource(R.drawable.profile_placeholder),
                     contentDescription = "Image do conteudo",
                     modifier = Modifier
-                        .offset(y = imageHeight / 2)
-                        .clip(CircleShape)
-                        //.border(4.dp, Color(0xFF25D366), CircleShape)
-                        .background(Color.White)
                         .align(Alignment.Center)
-                        .size(200.dp)
-                        .padding(20.dp)
+                        .size(300.dp)
 
                 )
             }
@@ -112,7 +107,7 @@ fun PorfileHeader(
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
             modifier = Modifier
-                .padding(top = 150.dp)
+                .padding(top = 100.dp)
                 .align(Alignment.CenterHorizontally)
 
         ) {
