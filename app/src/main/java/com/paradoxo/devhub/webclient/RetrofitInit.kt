@@ -3,11 +3,11 @@ package com.paradoxo.devhub.webclient
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 
-class RetrofitInit {
+class RetrofitInit(urlBase: String) {
 
     private val retrofit = Retrofit.Builder()
         //.baseUrl("https://api.github.com/")
-        .baseUrl("https://sticker-doxo-api.herokuapp.com/")
+        .baseUrl(urlBase)
         .addConverterFactory(GsonConverterFactory.create())
         .build()
 

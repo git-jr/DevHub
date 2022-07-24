@@ -2,7 +2,8 @@ package com.paradoxo.devhub.model
 
 import com.paradoxo.devhub.screen.ConteudoUiState
 
-data class ConteudoGitHub(
+data class Conteudo(
+    val id : String,
     val login: String,
     val name: String,
     val avatar_url: String,
@@ -10,8 +11,10 @@ data class ConteudoGitHub(
 )
 
 
-fun ConteudoGitHub.toConteudoUiState(): ConteudoUiState {
+
+fun Conteudo.toConteudoUiState(): ConteudoUiState {
     return ConteudoUiState(
+        id = id,
         user = login,
         image = avatar_url,
         name = name,

@@ -1,11 +1,7 @@
 package com.paradoxo.devhub.screen
 
-import android.R.attr.identifier
-import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
-import android.util.Log
-import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -28,7 +24,8 @@ import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat.startActivity
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
-import com.paradoxo.devhub.MainActivity
+import com.google.gson.Gson
+import com.paradoxo.devhub.ConteudoActivity
 import com.paradoxo.devhub.R
 import com.paradoxo.devhub.model.ConteudoRepository
 import com.paradoxo.devhub.webclient.ConteudoWebClient
@@ -36,9 +33,9 @@ import com.paradoxo.devhub.webclient.ConteudoWebClient
 
 @Composable
 fun InfoCardScreenConteudo(
-    apiName: String,
-    webClient: ConteudoWebClient = ConteudoWebClient(),
-    onSearchClick: () -> Unit = {}
+    urlApi: String,
+    webClient: ConteudoWebClient = ConteudoWebClient(urlApi),
+    onSearchClick: () -> Unit = {}, onUpdateClick: () -> Unit = {}
 ) {
     val uiState = webClient.uiState
 
@@ -46,16 +43,23 @@ fun InfoCardScreenConteudo(
         webClient.getConteudo()
     }
 
-    Conteudo(LocalContext.current, apiName, uiState, onSearchClick)
+    Conteudo(LocalContext.current, urlApi, uiState, onSearchClick, onUpdateClick)
+
 }
 
 
 @Composable
-fun Conteudo(context: Context, apiName: String, uiState: ConteudoUiState, onSearchClick: () -> Unit = {}) {
+fun Conteudo(
+    context: Context,
+    urlApi: String,
+    uiState: ConteudoUiState,
+    onSearchClick: () -> Unit = {},
+    onUpdateClick: () -> Unit = {}
+) {
 
     LazyColumn {
         item {
-            ConteudoHeader(apiName, onSearchClick = onSearchClick)
+            ConteudoHeader(urlApi, onSearchClick = onSearchClick, onUpdateClick = onUpdateClick)
         }
 
         item {
@@ -69,10 +73,17 @@ fun Conteudo(context: Context, apiName: String, uiState: ConteudoUiState, onSear
             }
         }
 
-        items(uiState.conteudos) { conteudo ->
-            RepositoryItem(conteudo = conteudo) { imageUrl ->
-                Log.i("Link Image", "$imageUrl");
+        items(uiState.conteudos) { it ->
+            RepositoryItem(conteudo = it) { conteudo ->
 
+                val intent = Intent(context, ConteudoActivity::class.java)
+                val gson = Gson()
+                val conteudoEmJson = gson.toJson(conteudo)
+                intent.putExtra("conteudoEmJson", conteudoEmJson)
+                intent.putExtra("URL_API", urlApi)
+
+
+                startActivity(context, intent, null)
             }
         }
 
@@ -80,12 +91,12 @@ fun Conteudo(context: Context, apiName: String, uiState: ConteudoUiState, onSear
 }
 
 
-
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
 private fun ConteudoHeader(
     apiName: String,
-    onSearchClick: () -> Unit = {}
+    onSearchClick: () -> Unit = {},
+    onUpdateClick: () -> Unit = {}
 ) {
     Column() {
         val boxHeight = remember {
@@ -100,25 +111,51 @@ private fun ConteudoHeader(
             modifier = Modifier
                 .fillMaxWidth()
                 .background(
-                    Color.DarkGray,
+                    Color(0xFFFDD835),
                 )
                 .height(boxHeight)
 
         ) {
+            Text(
+                text = "Imersão Java",
+                color = Color.DarkGray,
+                fontSize = 24.sp,
+                modifier = Modifier
+                    .align(Alignment.Center)
 
-            Chip(
-                onClick = { onSearchClick() },
-                border = ChipDefaults.outlinedBorder,
-                colors = ChipDefaults.outlinedChipColors(),
+            )
+
+            Row(
                 modifier = Modifier
                     .offset(y = imageHeight / 2)
                     .align(Alignment.BottomEnd)
-                    .padding(end = 18.dp)
+                    .padding(end = 18.dp, bottom = 4.dp)
             ) {
-                Text(
-                    text = "Mudar API",
-                )
+                Chip(
+                    onClick = { onUpdateClick() },
+                    border = ChipDefaults.outlinedBorder,
+                    colors = ChipDefaults.outlinedChipColors(),
+                    modifier = Modifier
+                        .padding(end = 4.dp)
+
+                ) {
+                    Text(
+                        text = "Atualizar",
+                    )
+                }
+
+                Chip(
+                    onClick = { onSearchClick() },
+                    border = ChipDefaults.outlinedBorder,
+                    colors = ChipDefaults.outlinedChipColors(),
+
+                    ) {
+                    Text(
+                        text = "Mudar API",
+                    )
+                }
             }
+
         }
 
 
@@ -135,30 +172,28 @@ private fun ConteudoHeader(
                 fontSize = 16.sp,
                 color = Color.Gray,
             )
-
         }
     }
 }
 
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
-fun RepositoryItem(conteudo: ConteudoRepository, onItemClick: (imageUrl: String) -> Unit = {}) {
+fun RepositoryItem(
+    conteudo: ConteudoRepository,
+    onItemClick: (conteudo: ConteudoRepository) -> Unit = {}
+) {
     Card(
         modifier = Modifier.padding(start = 18.dp, end = 8.dp, top = 8.dp, bottom = 8.dp),
         elevation = 4.dp,
         onClick = {
-            onItemClick(conteudo.image);
+            onItemClick(conteudo);
         }
     ) {
         Row(
         ) {
-            val boxHeight = remember {
-                120.dp
-            }
+            val boxHeight = remember { 120.dp }
 
-            val imageHeight = remember {
-                boxHeight
-            }
+            val imageHeight = remember { boxHeight }
 
             Box(
                 modifier = Modifier
@@ -195,7 +230,7 @@ fun RepositoryItem(conteudo: ConteudoRepository, onItemClick: (imageUrl: String)
                 )
 
                 Text(
-                    "Ranking: ${conteudo.ranking}",
+                    "Votos: ${conteudo.ranking}",
                     modifier = Modifier
                         .fillMaxWidth()
                 )
@@ -216,15 +251,18 @@ fun ConteudoPreview() {
         LocalContext.current,
         "https://sticker-doxo-api.herokuapp.com/linguagens",
         uiState = ConteudoUiState(
+            id = "id",
             user = "https://sticker-doxo-api.herokuapp.com/linguagens",
             image = "https://avatars.githubusercontent.com/u/35709152?v=4",
             name = "Junior",
             conteudos = listOf(
                 ConteudoRepository(
+                    id = "id",
                     title = "Conteudo for first test",
                     image = "Preview description 1"
                 ),
                 ConteudoRepository(
+                    id = "id",
                     title = "Repository for second test",
                     image = "Preview description 2"
                 )
@@ -235,6 +273,7 @@ fun ConteudoPreview() {
 }
 
 data class ConteudoUiState(
+    val id: String = "",
     val user: String = "",
     val image: String = "",
     val name: String = "",

@@ -6,6 +6,7 @@ import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.fillMaxSize
@@ -16,9 +17,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
-import androidx.core.content.ContextCompat
-import androidx.core.content.ContextCompat.startActivity
 import com.paradoxo.devhub.screen.AuthenticationScreen
 import com.paradoxo.devhub.screen.InfoCardScreenConteudo
 import com.paradoxo.devhub.ui.theme.DevHubTheme
@@ -34,8 +32,20 @@ class MainActivity : ComponentActivity() {
                     mutableStateOf(AppsScreens.Authentication)
                 }
 
-                var apiName by remember {
-                    mutableStateOf("")
+                if (intent.getBooleanExtra("atualizar", false)) {
+                    intent.putExtra("atualizar", false)
+                    screenState = AppsScreens.Conteudo
+                } else {
+                    Toast.makeText(
+                        this,
+                        "Digite uma API ou deixe em branco para usar a Padrão",
+                        Toast.LENGTH_LONG
+                    ).show()
+
+                }
+
+                var urlApi by remember {
+                    mutableStateOf("https://sticker-doxo-api.herokuapp.com/")
                 }
 
                 Surface(
@@ -48,22 +58,25 @@ class MainActivity : ComponentActivity() {
                             AuthenticationScreen(
                                 onEnterClick = {
                                     if (it.isBlank()) {
-                                        apiName =
-                                            "https://sticker-doxo-api.herokuapp.com/linguagens"
+                                        urlApi =
+                                            "https://sticker-doxo-api.herokuapp.com/"
                                     } else {
-                                        apiName = it
+                                        urlApi = it
                                     }
-
                                     screenState = AppsScreens.Conteudo
                                 }
                             )
                         }
                         AppsScreens.Conteudo -> {
-                            InfoCardScreenConteudo(apiName = apiName, onSearchClick = {
+                            InfoCardScreenConteudo(urlApi = urlApi, onSearchClick = {
                                 val intent = intent
-                                //finish()
-                                //startActivity(intent)
-                                adicionarFigurinha(this)
+                                finish()
+                                startActivity(intent)
+                            }, onUpdateClick = {
+                                val intent = intent
+                                intent.putExtra("atualizar", true)
+                                finish()
+                                startActivity(intent)
                             })
                         }
                     }
@@ -72,12 +85,16 @@ class MainActivity : ComponentActivity() {
             }
         }
     }
+
+
 }
+
 
 sealed class AppsScreens {
     object Authentication : AppsScreens()
     object Conteudo : AppsScreens()
 }
+
 
 fun adicionarFigurinha(context: Context) {
 
