@@ -1,5 +1,5 @@
 
-<h1 align="center"> <a href="https://youtu.be/WdT90ffB-0Q">DevHub - Conhecendo o Jetpack Compose</a></h1>
+<h2 align="center"> DevHub - Conhecendo o Jetpack Compose</h2>
 
 Projeto desenvolvido durante o [#7DaysOfCode](https://7daysofcode.io/matricula/android) da Alura, um série de desafios durantes 7 dias com foco em apresentar o Jetpack Compose, nova ferramenta da Google para agilizar o desenvolvimento de aplicativos.
 
